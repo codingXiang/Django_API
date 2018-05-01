@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>使用者資料</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB"
+        crossorigin="anonymous">
+</head>
+
+<body>
+    <div class="container">
+        <h1>使用者列表</h1>
+        <div class="row">
+            {% for user in users %}
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h4>
+                            <span id="show_name{{user.id}}">{{ user.name }}</span>
+                            -
+                            <span>
+                                <small id="show_username{{user.id}}">{{ user.username }}</small>
+                            </span>
+                        </h4>
+                        <p id="show_email{{user.id}}">{{ user.email }}</p>
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#edit_data{{ user.id }}">修改資料</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal fade" id="edit_data{{ user.id }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
+                aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalCenterTitle">修改資料</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <label for="name">name</label>
+                            <input type="text" class="form-control" id="name{{user.id}}" value="{{user.name}}">
+                            <label for="username">username</label>
+                            <input type="text" class="form-control" id="username{{user.id}}" value="{{user.username}}">
+                            <label for="email">name</label>
+                            <input type="email" class="form-control" id="email{{user.id}}" value="{{user.email}}">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>
+                            <button type="button" class="btn btn-primary" onclick="edit_data('{{user.id}}')">修改資料</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T"
+        crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+    {% csrf_token %}
+    <script>
+        // using jQuery
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie != '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?  
+                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function csrfSafeMethod(method) {
+            // these HTTP methods do not require CSRF protection  
+            return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+        }
+        $.ajaxSetup({
+            beforeSend: function (xhr, settings) {
+                var csrftoken = getCookie('csrftoken');
+                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+
+        function edit_data(user_id) {
+            name = $("#name" + user_id).val()
+            username = $("#username" + user_id).val()
+            email = $("#email" + user_id).val()
+            parameter = {
+                "user_id": user_id,
+                "name": name,
+                "username": username,
+                "email": email
+            }
+            $.post('api/update/', parameter, function (data) {
+                user = data[0].fields
+                $("#show_name" + user_id).html(user['name'])
+                $("#show_username" + user_id).html(user['username'])
+                $("#show_email" + user_id).html(user['email'])
+                $("#edit_data" + user_id + " .close").click()
+            });
+        }
+    </script>
+</body>
+
+</html>
